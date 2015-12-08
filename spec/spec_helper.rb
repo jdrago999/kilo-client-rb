@@ -15,7 +15,6 @@ require 'rspec'
 require 'bundler'
 require 'shoulda-matchers'
 require 'byebug'
-require 'faker'
 require 'webmock/rspec'
 
 lib = File.expand_path('../../lib', __FILE__)
@@ -41,7 +40,6 @@ def configure_rspec
     end
 
     config.before :suite do
-      Distribot.redis.flushdb
       WebMock.enable!
       WebMock.disable_net_connect!(:allow_localhost => true)
     end
