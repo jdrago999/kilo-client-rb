@@ -6,7 +6,7 @@ module Kilo
   class AuthError < StandardError; end
   class Client
     include HTTParty
-    attr_accessor :username, :vhost, :hostname, :cookies
+    attr_accessor :username, :vhost, :hostname, :cookies, :authenticated
     def initialize(args={})
       args.except(:password).each do |key,val|
         self.send("#{key}=", val)
@@ -14,6 +14,7 @@ module Kilo
       @password = args[:password]
       self.class.base_uri "https://#{self.hostname}"
       self.cookies = [ ]
+      self.authenticated = false
     end
 
 
@@ -27,10 +28,14 @@ module Kilo
       )
       if response.code.to_i == 200
         self.cookies = [ parse_cookie(response).to_cookie_string ]
-        true
+        self.authenticated = true
       else
         raise AuthError.new "Cannot authenticate as '#{self.username}' on host '#{self.hostname}'"
       end
+    end
+
+    def authenticated?
+      @authenticated
     end
 
     def parse_cookie(resp)

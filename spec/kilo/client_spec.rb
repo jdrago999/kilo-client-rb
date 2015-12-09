@@ -19,6 +19,7 @@ describe Kilo::Client do
     context 'when authentication' do
       context 'succeeds' do
         before do
+          expect(@client.authenticated?).to be_falsey
           expect(@client.class).to receive(:post).with('/api/auth', {
             verify: false,
             body: @params.slice(:username, :password)
@@ -38,9 +39,26 @@ describe Kilo::Client do
         it 'returns true' do
           expect(@result).to be_truthy
         end
+        it 'sets #authenticated? to true' do
+          expect(@client.authenticated?).to be_truthy
+        end
       end
       context 'fails' do
-        it 'raises an error'
+        before do
+          expect(@client.authenticated?).to be_falsey
+          expect(@client.class).to receive(:post).with('/api/auth', {
+            verify: false,
+            body: @params.slice(:username, :password)
+          }) do
+            response = double('response')
+              expect(response).to receive(:code){ 401 }
+              expect(response).not_to receive(:get_fields).with('Set-Cookie')
+            response
+          end
+        end
+        it 'raises an error' do
+          expect{@client.authenticate!}.to raise_error Kilo::AuthError
+        end
       end
     end
   end
