@@ -6,6 +6,17 @@ describe Kilo::Client do
     expect(client).to be_a Kilo::Client
   end
 
+  describe '#debug' do
+    it 'defaults to false, but can be set to true' do
+      client = Kilo::Client.new
+      expect(client.debug).to be_falsey
+      client.debug = true
+      expect(client.debug).to be_truthy
+      client.debug = false
+      expect(client.debug).to be_falsey
+    end
+  end
+
   describe '#authenticate!' do
     before do
       @params = {
@@ -46,10 +57,9 @@ describe Kilo::Client do
       context 'fails' do
         before do
           expect(@client.authenticated?).to be_falsey
-          expect(@client.class).to receive(:post).with('/api/auth', {
-            verify: false,
+          expect(@client.class).to receive(:post).with('/api/auth', hash_including({
             body: @params.slice(:username, :password)
-          }) do
+          })) do
             response = double('response')
               expect(response).to receive(:code){ 401 }
               expect(response).not_to receive(:get_fields).with('Set-Cookie')
@@ -64,12 +74,35 @@ describe Kilo::Client do
   end
 
   describe '#publish(channel, message)' do
+    before do
+      @params = {
+        username: 'kilo',
+        password: 'password',
+        vhost:    'default',
+        hostname: 'localhost',
+      }
+      @client = Kilo::Client.new(@params)
+    end
     context 'when the client' do
       context 'has not yet authenticated' do
-        it 'raises an error'
+        it 'raises an error' do
+          expect{@client.publish('foo', 'bar')}.to raise_error Kilo::NotYetAuthenticatedError
+        end
       end
       context 'has already authenticated' do
-        it 'publishes the message to the channel'
+        before do
+          expect(@client).to receive(:authenticated?){ true }
+        end
+        it 'publishes the message to the channel' do
+          @channel = SecureRandom.hex(8)
+          @message = SecureRandom.uuid
+          publish_uri = "/api/#{@client.vhost}/channels/#{@channel}/publish"
+          expect(@client.class).to receive(:post).with(publish_uri, hash_including({
+              body: {messages: [@message]}
+            })
+          )
+          @client.publish(@channel, @message)
+        end
       end
     end
   end

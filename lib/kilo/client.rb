@@ -4,9 +4,10 @@ require 'httparty'
 
 module Kilo
   class AuthError < StandardError; end
+  class NotYetAuthenticatedError < StandardError; end
   class Client
     include HTTParty
-    attr_accessor :username, :vhost, :hostname, :cookies, :authenticated
+    attr_accessor :username, :vhost, :hostname, :cookies, :authenticated, :debug
     def initialize(args={})
       args.except(:password).each do |key,val|
         self.send("#{key}=", val)
@@ -17,6 +18,14 @@ module Kilo
       self.authenticated = false
     end
 
+    def debug=(value)
+      @debug = value
+      if value
+        self.class.debug_output
+      else
+        self.class.debug_output false
+      end
+    end
 
     def authenticate!
       response = self.class.post('/api/auth',
@@ -37,6 +46,21 @@ module Kilo
     def authenticated?
       @authenticated
     end
+
+    def publish(channel, messages=[], options={})
+      unless self.authenticated?
+        raise NotYetAuthenticatedError.new "You must first call authenticate! before publishing messages."
+      end
+      response = self.class.post("/api/#{self.vhost}/channels/#{channel}/publish",
+        verify: false,
+        headers: {'Cookie' => self.cookies.join('; ')},
+        body: {
+          messages: ( messages.is_a?(Array) ? messages : [messages] ),
+        }.merge(options.slice(:autocreate))
+      )
+    end
+
+    private
 
     def parse_cookie(resp)
       cookie_hash = CookieHash.new

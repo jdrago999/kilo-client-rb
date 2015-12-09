@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+require 'kilo/client'
+require 'byebug'
+
+kilo = Kilo::Client.new(
+  hostname: 'localhost',
+  vhost: 'kilo',
+  username: 'kilo',
+  password: 'password'
+)
+kilo.debug = true
+
+kilo.authenticate!
+
+
+1_000.times do |n|
+  warn "#{n}/1000"
+  result = kilo.publish('foobar' + n.to_s, 'hello, world!', autocreate: true)
+end

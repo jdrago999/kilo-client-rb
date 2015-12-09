@@ -34,7 +34,7 @@ kilo = Kilo::Client.new(
 
 ### Publish
 
-*Signature:* `publish(<channel>, <message>)`
+*Signature:* `publish(<channel>, <messages=[]>, options={})`
 
 Send the message to a channel. It will be received by the first consumer which requests the message.
 
@@ -45,7 +45,7 @@ kilo.publish('some.channel.name', 'Hello, World!')
 
 ### Broadcast
 
-*Signature:* `broadcast(<channel>, <message>)`
+*Signature:* `broadcast(<channel>, <messages=[]>, options={})`
 
 Send the message to a channel. It will be received by all connected consumers. The message will not be available to consumers who connect after the broadcast has already finished.
 
