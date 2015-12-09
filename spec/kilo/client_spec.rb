@@ -93,15 +93,85 @@ describe Kilo::Client do
         before do
           expect(@client).to receive(:authenticated?){ true }
         end
-        it 'publishes the message to the channel' do
-          @channel = SecureRandom.hex(8)
-          @message = SecureRandom.uuid
-          publish_uri = "/api/#{@client.vhost}/channels/#{@channel}/publish"
-          expect(@client.class).to receive(:post).with(publish_uri, hash_including({
-              body: {messages: [@message]}
-            })
-          )
-          @client.publish(@channel, @message)
+        context 'when publishing' do
+          context 'succeeds' do
+            before do
+              @channel = SecureRandom.hex(8)
+              @message = SecureRandom.uuid
+              publish_uri = "/api/#{@client.vhost}/channels/#{@channel}/publish"
+              expect(@client.class).to receive(:post).with(publish_uri, hash_including({
+                  body: {messages: [@message]}
+                })
+              ) do
+                response = double('response')
+                  expect(response).to receive(:code){ 200 }
+                  expect(response).not_to receive(:get_fields).with('Set-Cookie')
+                  expect(response).to receive(:body) {
+                    {
+                      success: true,
+                      published: 1
+                    }.to_json
+                  }
+                response
+              end
+              @result = @client.publish(@channel, @message)
+            end
+            it 'returns success:true' do
+              expect(@result.success).to be_truthy
+            end
+            it 'returns the number of messages published' do
+              expect(@result.published).to eq 1
+            end
+          end
+          context 'fails' do
+            context 'because of bad parameters' do
+              before do
+                @channel = SecureRandom.hex(8)
+                @message = SecureRandom.uuid
+                publish_uri = "/api/#{@client.vhost}/channels/#{@channel}/publish"
+                expect(@client.class).to receive(:post).with(publish_uri, hash_including({
+                    body: {messages: [@message]}
+                  })
+                ) do
+                  response = double('response')
+                    expect(response).to receive(:code){ 400 }
+                    expect(response).not_to receive(:get_fields).with('Set-Cookie')
+                    expect(response).to receive(:body) {
+                      {
+                        success: false,
+                        errors: ["test error"]
+                      }.to_json
+                    }
+                  response
+                end
+              end
+              it 'raises an error' do
+                expect{@client.publish(@channel, @message)}.to raise_error Kilo::PublishError
+              end
+            end
+            context 'because authentication failed' do
+              before do
+                @channel = SecureRandom.hex(8)
+                @message = SecureRandom.uuid
+                publish_uri = "/api/#{@client.vhost}/channels/#{@channel}/publish"
+                expect(@client.class).to receive(:post).with(publish_uri, hash_including({
+                    body: {messages: [@message]}
+                  })
+                ) do
+                  response = double('response')
+                    expect(response).to receive(:code){ 401 }
+                    expect(response).not_to receive(:get_fields).with('Set-Cookie')
+                    expect(response).to receive(:body) {
+                      'Not Authorized'
+                    }
+                  response
+                end
+              end
+              it 'raises an error' do
+                expect{@client.publish(@channel, @message)}.to raise_error Kilo::AuthError
+              end
+            end
+          end
         end
       end
     end

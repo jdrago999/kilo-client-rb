@@ -1,10 +1,12 @@
 
 require 'active_support/core_ext/object'
+require 'active_support/json'
 require 'httparty'
 
 module Kilo
   class AuthError < StandardError; end
   class NotYetAuthenticatedError < StandardError; end
+  class PublishError < StandardError; end
   class Client
     include HTTParty
     attr_accessor :username, :vhost, :hostname, :cookies, :authenticated, :debug
@@ -58,6 +60,14 @@ module Kilo
           messages: ( messages.is_a?(Array) ? messages : [messages] ),
         }.merge(options.slice(:autocreate))
       )
+      case response.code
+      when 200
+        OpenStruct.new( JSON.parse(response.body, symbolize_names: true) )
+      when 401
+        raise AuthError.new response.body
+      else
+        raise PublishError.new response.body
+      end
     end
 
     private
