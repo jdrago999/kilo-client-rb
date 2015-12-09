@@ -15,7 +15,6 @@ require 'rspec'
 require 'bundler'
 require 'shoulda-matchers'
 require 'byebug'
-require 'webmock/rspec'
 
 lib = File.expand_path('../../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
@@ -37,15 +36,6 @@ def configure_rspec
     config.mock_with :rspec do |mocks|
       mocks.syntax = [:should, :expect]
       mocks.verify_partial_doubles = true
-    end
-
-    config.before :suite do
-      WebMock.enable!
-      WebMock.disable_net_connect!(:allow_localhost => true)
-    end
-
-    config.after :suite do
-      WebMock.disable!
     end
 
     config.run_all_when_everything_filtered = true

@@ -14,14 +14,10 @@ GEM
       minitest (~> 5.1)
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
-    addressable (2.3.8)
     byebug (8.2.0)
-    crack (0.4.2)
-      safe_yaml (~> 1.0.0)
     diff-lcs (1.2.5)
     docile (1.1.5)
     event_emitter (0.2.5)
-    hashdiff (0.2.3)
     httparty (0.13.7)
       json (~> 1.8)
       multi_xml (>= 0.5.2)
@@ -43,7 +39,6 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.4.0)
     rspec-support (3.4.1)
-    safe_yaml (1.0.4)
     shoulda-matchers (3.0.1)
       activesupport (>= 4.0.0)
     simplecov (0.10.0)
@@ -54,10 +49,6 @@ GEM
     thread_safe (0.3.5)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
-    webmock (1.22.3)
-      addressable (>= 2.3.6)
-      crack (>= 0.3.2)
-      hashdiff
     websocket (1.2.2)
     websocket-client-simple (0.2.4)
       event_emitter
@@ -74,4 +65,3 @@ DEPENDENCIES
   rspec
   shoulda-matchers
   simplecov
-  webmock

@@ -19,7 +19,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "shoulda-matchers"
   spec.add_development_dependency "byebug"
   spec.add_development_dependency "simplecov"
-  spec.add_development_dependency "webmock"
 
   spec.add_dependency 'httparty'
   spec.add_dependency 'websocket-client-simple'
